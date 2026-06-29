@@ -1,0 +1,16 @@
+{
+  "chain_name": "testnet",
+  "api": ["https://api-testnet.ethwei.com"],
+  "rpc": ["https://rpc-testnet.ethwei.com"],
+  "coingecko": "",
+  "snapshot_provider": "",
+  "sdk_version": "0.53.6",
+  "coin_type": "118",
+  "min_tx_fee": "5000",
+  "addr_prefix": "ete",
+  "logo": "https://explorer.ethwei.com/ethwei-chain.png",
+  "theme_color": "#6b5cff",
+  "assets": [
+    { "base": "WEI", "symbol": "ETE", "exponent": "6", "coingecko_id": "", "logo": "https://explorer.ethwei.com/ethwei-chain.png" }
+  ]
+}

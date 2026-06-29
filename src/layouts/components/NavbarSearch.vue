@@ -68,7 +68,7 @@ function confirm() {
 <template>
   <div>
     <!-- Desktop: inline search bar in header -->
-    <div class="hidden md:!flex items-center rounded-lg bg-gray-100 dark:bg-[#252d45] border border-gray-200 dark:border-gray-600 h-9 w-60 lg:!w-80 mr-1 overflow-hidden"
+    <div class="hidden md:!flex items-center rounded-lg bg-gray-100 dark:bg-[#252d45] border border-gray-200 dark:border-gray-600 h-9 w-72 lg:!w-96 xl:!w-[28rem] mr-1 overflow-hidden"
       :class="{ 'border-error': inputError }">
       <input
         v-model="searchQuery"

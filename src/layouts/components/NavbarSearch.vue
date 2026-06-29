@@ -68,16 +68,21 @@ function confirm() {
 <template>
   <div>
     <!-- Desktop: inline search bar in header -->
-    <div class="hidden md:!flex items-center rounded-lg bg-gray-100 dark:bg-[#252d45] border border-gray-200 dark:border-gray-600 h-9 px-3 w-60 lg:!w-80 mr-1"
+    <div class="hidden md:!flex items-center rounded-lg bg-gray-100 dark:bg-[#252d45] border border-gray-200 dark:border-gray-600 h-9 w-60 lg:!w-80 mr-1 overflow-hidden"
       :class="{ 'border-error': inputError }">
-      <Icon icon="mdi:magnify" class="text-lg text-gray-400 flex-shrink-0 mr-2" />
       <input
         v-model="searchQuery"
         placeholder="Height / Tx / Address"
-        class="bg-transparent outline-none text-sm flex-1 min-w-0 placeholder-gray-400"
+        class="bg-transparent outline-none text-sm flex-1 min-w-0 placeholder-gray-400 px-3 h-full"
         @keyup.enter="confirm"
         @keyup.esc="searchQuery = ''"
       />
+      <button
+        class="h-full px-3 bg-primary hover:bg-primary/80 flex items-center justify-center flex-shrink-0 transition-colors"
+        @click="confirm"
+      >
+        <Icon icon="mdi:magnify" class="text-lg text-white" />
+      </button>
     </div>
 
     <!-- Mobile: icon that opens modal -->

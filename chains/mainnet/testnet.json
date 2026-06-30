@@ -9,7 +9,7 @@
   "min_tx_fee": "5000",
   "addr_prefix": "ete",
   "logo": "https://explorer.ethwei.com/ethwei-chain.png",
-  "theme_color": "#6b5cff",
+  "theme_color": "#3fb68b",
   "assets": [
     { "base": "WEI", "symbol": "ETE", "exponent": "6", "coingecko_id": "", "logo": "https://explorer.ethwei.com/ethwei-chain.png" }
   ]

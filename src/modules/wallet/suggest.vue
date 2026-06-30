@@ -97,6 +97,7 @@ async function initParamsForKeplr() {
         coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
       },
       features: chain.keplrFeatures || [],
+      explorerUrlToTx: `https://explorer.ethwei.com/${chain.chainName}/tx/{txHash}`,
     },
     null,
     '\t'

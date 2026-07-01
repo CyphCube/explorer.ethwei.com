@@ -74,6 +74,7 @@ export const useBlockchain = defineStore('blockchain', {
             badgeClass: 'bg-error',
             children: routes
               .filter((x) => x.meta.i18n) // defined menu name
+              .filter((x) => !['ibc', 'widget'].includes(String(x.meta.i18n))) // hidden for Ethwei (single chain, no IBC/embeds)
               .filter((x) => !this.current?.features || this.current.features.includes(String(x.meta.i18n))) // filter none-custom module
               .map((x) => ({
                 title: `module.${x.meta.i18n}`,

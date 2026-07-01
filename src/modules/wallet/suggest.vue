@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { suggestChain } from '@leapwallet/cosmos-snap-provider';
 import {
   useDashboard,
   useBlockchain,
 } from '@/stores';
 import type { ChainConfig } from '@/types/chaindata';
-import { NetworkType } from '@/types/chaindata';
 import { CosmosRestClient } from '@/libs/client';
 import { onMounted } from 'vue';
 import AdBanner from '@/components/ad/AdBanner.vue';
@@ -16,24 +15,11 @@ const conf = ref('');
 const dashboard = useDashboard();
 const selected = ref({} as ChainConfig);
 const wallet = ref('keplr');
-const network = ref(NetworkType.Mainnet);
-const mainnet = ref([] as ChainConfig[]);
-const testnet = ref([] as ChainConfig[]);
-const chains = computed(() => {
-  return network.value === NetworkType.Mainnet ? mainnet.value : testnet.value;
-});
 
 onMounted(() => {
   const chainStore = useBlockchain();
   selected.value = chainStore.current || Object.values(dashboard.chains)[0];
   initParamsForKeplr();
-
-  dashboard.loadLocalConfig(NetworkType.Mainnet).then((res) => {
-    mainnet.value = Object.values<ChainConfig>(res);
-  });
-  dashboard.loadLocalConfig(NetworkType.Testnet).then((res) => {
-    testnet.value = Object.values<ChainConfig>(res);
-  });
 });
 
 function onchange() {
@@ -179,22 +165,13 @@ async function suggest() {
 
 <template>
   <div class="bg-base-100 p-4 rounded text-center">
-    <div class="flex text-center">
-      <select v-model="network" class="select select-bordered">
-        <option :value="NetworkType.Mainnet">Mainnet</option>
-        <option :value="NetworkType.Testnet">Testnet</option>
-      </select>
-      <select v-model="selected" class="select select-bordered mx-5" @change="onchange">
-        <option v-for="c in chains" :value="c">
-          {{ c.chainName }}
-        </option>
-      </select>
+    <div class="flex items-center justify-center gap-6">
       <label
         ><input type="radio" v-model="wallet" value="keplr" class="radio radio-bordered" @change="onchange" />
         Keplr</label
       >
       <label
-        ><input type="radio" v-model="wallet" value="metamask" class="radio radio-bordered ml-4" @change="onchange" />
+        ><input type="radio" v-model="wallet" value="metamask" class="radio radio-bordered" @change="onchange" />
         Metamask</label
       >
     </div>

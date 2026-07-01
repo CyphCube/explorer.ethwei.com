@@ -30,10 +30,12 @@ async function initParamsForKeplr() {
   };
   const coinDecimals =
     chain.assets[0].denom_units.find((x: DenomUnit) => x.denom === chain.assets[0].symbol.toLowerCase())?.exponent || 6;
+  const coinImageUrl = chain.logo;
+  const displayName = `Ethwei ${chain.chainName.charAt(0).toUpperCase()}${chain.chainName.slice(1)}`;
   conf.value = JSON.stringify(
     {
       chainId: chainid,
-      chainName: chain.chainName,
+      chainName: displayName,
       rpc: chain.endpoints?.rpc?.at(0)?.address,
       rest: chain.endpoints?.rest?.at(0)?.address,
       bip44: {
@@ -53,7 +55,7 @@ async function initParamsForKeplr() {
           coinDenom: chain.assets[0].symbol,
           coinMinimalDenom: chain.assets[0].base,
           coinDecimals,
-          coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
+          coinImageUrl,
         },
       ],
       feeCurrencies: [
@@ -61,7 +63,7 @@ async function initParamsForKeplr() {
           coinDenom: chain.assets[0].symbol,
           coinMinimalDenom: chain.assets[0].base,
           coinDecimals,
-          coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
+          coinImageUrl,
           gasPriceStep,
         },
       ],
@@ -70,8 +72,9 @@ async function initParamsForKeplr() {
         coinDenom: chain.assets[0].symbol,
         coinMinimalDenom: chain.assets[0].base,
         coinDecimals,
-        coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
+        coinImageUrl,
       },
+      chainSymbolImageUrl: coinImageUrl,
       features: chain.keplrFeatures || [],
     },
     null,

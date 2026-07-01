@@ -455,8 +455,7 @@ const amount = computed({
         </table>
       </div>
 
-      <div class="grid grid-cols-3 gap-4 px-4 pb-6 mt-4">
-        <label for="PingTokenConvert" class="btn btn-primary text-white">{{ $t('index.btn_swap') }}</label>
+      <div class="grid grid-cols-2 gap-4 px-4 pb-6 mt-4">
         <label for="send" class="btn !bg-yes !border-yes text-white" @click="dialog.open('send', {}, updateState)">{{
           $t('account.btn_send')
         }}</label>
@@ -470,13 +469,6 @@ const amount = computed({
           $t('index.receive')
         }}</RouterLink>
       </div>
-      <Teleport to="body">
-        <ping-token-convert
-          :chain-name="blockchain?.current?.prettyName"
-          :endpoint="blockchain?.endpoint?.address"
-          :hd-path="walletStore?.connectedWallet?.hdPath"
-        ></ping-token-convert>
-      </Teleport>
     </div>
 
     <div class="bg-base-100 rounded mt-4">

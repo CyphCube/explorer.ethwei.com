@@ -141,17 +141,35 @@ async function initSnap() {
   );
 }
 
-function suggest() {
-  if (wallet.value === 'keplr') {
-    // @ts-ignore
-    if (window.keplr) {
+const successMsg = ref('');
+
+async function suggest() {
+  error.value = '';
+  successMsg.value = '';
+  let chainInfo;
+  try {
+    chainInfo = JSON.parse(conf.value);
+  } catch (e: any) {
+    error.value = 'The config is not valid JSON: ' + (e?.message || String(e));
+    return;
+  }
+  try {
+    if (wallet.value === 'keplr') {
       // @ts-ignore
-      window.keplr.experimentalSuggestChain(JSON.parse(conf.value)).catch((e) => {
-        error.value = e;
-      });
+      if (!window.keplr) {
+        error.value =
+          'Keplr extension not detected. Install the Keplr browser extension (keplr.app), then reload this page and try again.';
+        return;
+      }
+      // @ts-ignore
+      await window.keplr.experimentalSuggestChain(chainInfo);
+      successMsg.value = `✓ ${chainInfo.chainName} added to Keplr. Open the Keplr extension — it should now appear in your chain list. (If it was already added, it's already there.)`;
+    } else {
+      await suggestChain(chainInfo);
+      successMsg.value = `✓ ${chainInfo.chainName} submitted to Metamask Snap.`;
     }
-  } else {
-    suggestChain(JSON.parse(conf.value));
+  } catch (e: any) {
+    error.value = 'Error: ' + (e?.message || String(e) || 'The wallet rejected the request.');
   }
 }
 </script>
@@ -184,6 +202,13 @@ function suggest() {
       <button class="btn !bg-primary !border-primary text-white mr-2" @click="suggest">
         Suggest {{ selected.chainName }} TO {{ wallet }}
       </button>
+
+      <div v-if="error" class="alert alert-error mt-4 text-sm text-left break-words">
+        {{ error }}
+      </div>
+      <div v-if="successMsg" class="alert alert-success mt-4 text-sm text-left break-words">
+        {{ successMsg }}
+      </div>
 
       <div class="mt-4">
         If the chain is not offically support on Keplr/Metamask Snap, you can submit these parameters to enable

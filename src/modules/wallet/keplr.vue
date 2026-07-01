@@ -79,13 +79,30 @@ async function initParamsForKeplr() {
   );
 }
 
-function suggest() {
+const successMsg = ref('');
+
+async function suggest() {
+  error.value = '';
+  successMsg.value = '';
+  let chainInfo;
+  try {
+    chainInfo = JSON.parse(conf.value);
+  } catch (e: any) {
+    error.value = 'The config is not valid JSON: ' + (e?.message || String(e));
+    return;
+  }
   // @ts-ignore
-  if (window.keplr) {
+  if (!window.keplr) {
+    error.value =
+      'Keplr extension not detected. Install the Keplr browser extension (keplr.app), then reload this page and try again.';
+    return;
+  }
+  try {
     // @ts-ignore
-    window.keplr.experimentalSuggestChain(JSON.parse(conf.value)).catch((e) => {
-      error.value = e;
-    });
+    await window.keplr.experimentalSuggestChain(chainInfo);
+    successMsg.value = `✓ ${chainInfo.chainName} added to Keplr. Open the Keplr extension — it should now appear in your chain list. (If it was already added, it's already there.)`;
+  } catch (e: any) {
+    error.value = 'Error: ' + (e?.message || String(e) || 'Keplr rejected the request.');
   }
 }
 </script>
@@ -105,6 +122,12 @@ function suggest() {
     </div>
     <div class="text-main mt-5">
       <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15"></textarea>
+    </div>
+    <div v-if="error" class="alert alert-error mt-4 text-sm text-left break-words">
+      {{ error }}
+    </div>
+    <div v-if="successMsg" class="alert alert-success mt-4 text-sm text-left break-words">
+      {{ successMsg }}
     </div>
     <div class="mt-4 mb-4">
       If the chain is not offically support on Keplr, you can submit these parameters to enable Keplr.

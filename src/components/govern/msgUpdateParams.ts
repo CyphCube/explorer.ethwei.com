@@ -26,8 +26,21 @@ const DURATION_KEYS = new Set([
   'downtime_jail_duration',
 ]);
 
-// slashing legacy Dec fields: proto `bytes` holding the ASCII of value*10^18
+// Legacy Dec fields (gogoproto customtype LegacyDec) marshal on the wire as
+// the ASCII text of value*10^18 — NOT the human "0.500000000000000000" form
+// the REST API displays. Passing the display string through unchanged makes
+// the chain fail with `cannot unmarshal ... into a *big.Int: tx parse error`.
+// gov v1's dec params (quorum etc.) are plain proto strings and stay human-form.
+
+// proto `bytes` Dec fields (slashing)
 const DEC_BYTES_KEYS = new Set(['min_signed_per_window', 'slash_fraction_double_sign', 'slash_fraction_downtime']);
+// proto `string` Dec fields with customtype (staking, distribution)
+const DEC_STRING_KEYS = new Set([
+  'min_commission_rate',
+  'community_tax',
+  'base_proposer_reward',
+  'bonus_proposer_reward',
+]);
 
 function snakeToCamel(key: string): string {
   return key.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
@@ -40,12 +53,16 @@ function parseDurationString(s: string): { seconds: string; nanos: number } {
   return { seconds: m[1], nanos };
 }
 
-// "0.500000000000000000" -> ASCII bytes of "500000000000000000" (LegacyDec.Marshal)
-export function decToBytes(dec: string): Uint8Array {
+// "0.500000000000000000" -> "500000000000000000" (LegacyDec.Marshal text)
+export function decToIntString(dec: string): string {
   if (!/^\d+(\.\d+)?$/.test(dec.trim())) throw new Error(`"${dec}" is not a decimal number.`);
   const [whole, frac = ''] = dec.trim().split('.');
   const fracPadded = (frac + '0'.repeat(18)).slice(0, 18);
-  const intStr = ((whole || '0') + fracPadded).replace(/^0+/, '') || '0';
+  return ((whole || '0') + fracPadded).replace(/^0+/, '') || '0';
+}
+
+export function decToBytes(dec: string): Uint8Array {
+  const intStr = decToIntString(dec);
   const out = new Uint8Array(intStr.length);
   for (let i = 0; i < intStr.length; i++) out[i] = intStr.charCodeAt(i);
   return out;
@@ -61,6 +78,8 @@ export function normalizeParams(obj: any): any {
       out[snakeToCamel(key)] = parseDurationString(value);
     } else if (DEC_BYTES_KEYS.has(key) && typeof value === 'string') {
       out[snakeToCamel(key)] = decToBytes(value);
+    } else if (DEC_STRING_KEYS.has(key) && typeof value === 'string') {
+      out[snakeToCamel(key)] = decToIntString(value);
     } else {
       out[snakeToCamel(key)] = normalizeParams(value);
     }

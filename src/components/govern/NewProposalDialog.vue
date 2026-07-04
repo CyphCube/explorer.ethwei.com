@@ -3,11 +3,11 @@ import { computed, ref } from 'vue';
 import { useBlockchain, useBaseStore, useWalletStore } from '@/stores';
 import { SigningStargateClient, defaultRegistryTypes } from '@cosmjs/stargate';
 import { Registry } from '@cosmjs/proto-signing';
-import { MsgSubmitProposal, MsgExecLegacyContent } from 'cosmjs-types/cosmos/gov/v1/tx';
+import { MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { MsgCommunityPoolSpend } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import { MsgSoftwareUpgrade } from 'cosmjs-types/cosmos/upgrade/v1beta1/tx';
-import { ParameterChangeProposal } from 'cosmjs-types/cosmos/params/v1beta1/params';
 import type { Any } from 'cosmjs-types/google/protobuf/any';
+import { PARAM_MODULES, normalizeParams } from './msgUpdateParams';
 
 const emit = defineEmits<{ (e: 'submitted'): void }>();
 
@@ -36,10 +36,34 @@ const spendAmount = ref('');
 const upgradeName = ref('');
 const upgradeHeight = ref('');
 const upgradeInfo = ref('');
-// parameter change (legacy)
-const paramSubspace = ref('');
-const paramKey = ref('');
-const paramValue = ref('');
+// parameter change (MsgUpdateParams)
+const paramModule = ref<keyof typeof PARAM_MODULES>('staking');
+const paramsJson = ref('');
+const paramsLoading = ref(false);
+
+async function loadModuleParams() {
+  paramsJson.value = '';
+  error.value = '';
+  paramsLoading.value = true;
+  try {
+    const rest = chainStore.current?.endpoints?.rest?.at(0)?.address;
+    const mod = PARAM_MODULES[paramModule.value];
+    const res = await fetch(`${rest}${mod.paramsUrl}`);
+    if (!res.ok) throw new Error(`Could not fetch ${mod.label} params (HTTP ${res.status}).`);
+    const data = await res.json();
+    if (!data.params) throw new Error(`${mod.label} params not available on this chain.`);
+    paramsJson.value = JSON.stringify(data.params, null, 2);
+  } catch (e: any) {
+    error.value = e?.message || String(e);
+  } finally {
+    paramsLoading.value = false;
+  }
+}
+
+function onTypeChange() {
+  reset();
+  if (proposalType.value === 'parameter_change' && !paramsJson.value) loadModuleParams();
+}
 
 const asset = computed(() => chainStore.current?.assets?.[0]);
 const symbol = computed(() => asset.value?.symbol || 'ETE');
@@ -116,20 +140,16 @@ async function buildInnerMessages(): Promise<Any[]> {
     return [{ typeUrl: '/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade', value: MsgSoftwareUpgrade.encode(inner).finish() }];
   }
 
-  // parameter_change (legacy content via MsgExecLegacyContent)
-  if (!paramSubspace.value.trim() || !paramKey.value.trim()) throw new Error('Subspace and key are required.');
-  const content = {
-    typeUrl: '/cosmos.params.v1beta1.ParameterChangeProposal',
-    value: ParameterChangeProposal.encode(
-      ParameterChangeProposal.fromPartial({
-        title: title.value,
-        description: summary.value,
-        changes: [{ subspace: paramSubspace.value.trim(), key: paramKey.value.trim(), value: paramValue.value.trim() }],
-      })
-    ).finish(),
-  };
-  const inner = MsgExecLegacyContent.fromPartial({ content, authority });
-  return [{ typeUrl: '/cosmos.gov.v1.MsgExecLegacyContent', value: MsgExecLegacyContent.encode(inner).finish() }];
+  // parameter_change (modern per-module MsgUpdateParams)
+  if (!paramsJson.value.trim()) throw new Error('Params JSON is empty — load the current params first.');
+  let parsed: any;
+  try {
+    parsed = JSON.parse(paramsJson.value);
+  } catch (e: any) {
+    throw new Error('Params is not valid JSON: ' + (e?.message || String(e)));
+  }
+  const mod = PARAM_MODULES[paramModule.value];
+  return [{ typeUrl: mod.typeUrl, value: mod.encode(authority, normalizeParams(parsed)) }];
 }
 
 async function submit() {
@@ -208,11 +228,11 @@ async function submit() {
 
         <!-- Type -->
         <label class="block text-sm text-gray-500 mb-1">Type</label>
-        <select v-model="proposalType" class="select select-bordered w-full mb-3" :disabled="loading">
+        <select v-model="proposalType" class="select select-bordered w-full mb-3" :disabled="loading" @change="onTypeChange">
           <option value="text">Text</option>
           <option value="community_pool_spend">Community Pool Spend</option>
           <option value="software_upgrade">Software Upgrade</option>
-          <option value="parameter_change">Parameter Change (legacy)</option>
+          <option value="parameter_change">Parameter Change</option>
         </select>
 
         <!-- Common -->
@@ -246,14 +266,33 @@ async function submit() {
           <input v-model="upgradeInfo" class="input input-bordered w-full mb-3" placeholder="upgrade info / json" :disabled="loading" />
         </template>
 
-        <!-- Parameter Change -->
+        <!-- Parameter Change (MsgUpdateParams) -->
         <template v-if="proposalType === 'parameter_change'">
-          <label class="block text-sm text-gray-500 mb-1">Subspace</label>
-          <input v-model="paramSubspace" class="input input-bordered w-full mb-3" placeholder="staking" :disabled="loading" />
-          <label class="block text-sm text-gray-500 mb-1">Key</label>
-          <input v-model="paramKey" class="input input-bordered w-full mb-3" placeholder="MaxValidators" :disabled="loading" />
-          <label class="block text-sm text-gray-500 mb-1">Value</label>
-          <input v-model="paramValue" class="input input-bordered w-full mb-3" placeholder='100' :disabled="loading" />
+          <label class="block text-sm text-gray-500 mb-1">Module</label>
+          <select
+            v-model="paramModule"
+            class="select select-bordered w-full mb-3"
+            :disabled="loading || paramsLoading"
+            @change="loadModuleParams"
+          >
+            <option v-for="(mod, key) in PARAM_MODULES" :key="key" :value="key">{{ mod.label }}</option>
+          </select>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-sm text-gray-500">Params (edit the values to change)</label>
+            <button class="btn btn-xs" :disabled="loading || paramsLoading" @click="loadModuleParams">
+              {{ paramsLoading ? 'Loading…' : 'Reset to current' }}
+            </button>
+          </div>
+          <textarea
+            v-model="paramsJson"
+            rows="10"
+            class="textarea textarea-bordered w-full mb-3 font-mono text-xs"
+            :placeholder="paramsLoading ? 'Loading current params…' : ''"
+            :disabled="loading || paramsLoading"
+          ></textarea>
+          <p class="text-xs text-gray-400 mb-3">
+            The whole params object is replaced on-chain if the proposal passes — leave unrelated values as loaded.
+          </p>
         </template>
 
         <!-- Deposit -->
@@ -284,5 +323,4 @@ async function submit() {
     </div>
   </div>
 </template>
-<!-- emit declared at top of script -->
 

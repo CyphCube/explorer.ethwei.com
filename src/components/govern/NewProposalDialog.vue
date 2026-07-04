@@ -192,7 +192,9 @@ async function submit() {
         messages: inner,
         initialDeposit: [{ denom: denom.value, amount: toBaseAmount(deposit.value, exponent.value) }],
         proposer,
-        metadata: '',
+        // gov requires messages OR metadata to be non-empty; text proposals
+        // have no messages, so carry the title as metadata (MaxMetadataLen 255)
+        metadata: inner.length === 0 ? title.value.trim().slice(0, 255) : '',
         title: title.value.trim(),
         summary: summary.value.trim(),
       }),

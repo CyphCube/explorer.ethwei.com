@@ -3,6 +3,7 @@ import { themeChange } from 'theme-change';
 import { onMounted, onUnmounted, ref } from 'vue';
 import TxDialog from './components/TxDialog.vue';
 import { useBaseStore } from '@/stores';
+import { preloadTxWidgetWhenIdle } from '@/lib/widgetLoader';
 
 const REFRESH_INTERVAL = import.meta.env.VITE_REFRESH_INTERVAL || 6000;
 
@@ -40,6 +41,7 @@ onMounted(() => {
   themeChange(false);
   startPolling();
   document.addEventListener('visibilitychange', handleVisibilityChange);
+  preloadTxWidgetWhenIdle();
 });
 
 onUnmounted(() => {

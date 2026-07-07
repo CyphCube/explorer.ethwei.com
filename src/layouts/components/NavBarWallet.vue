@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router';
 import { useBaseStore, useBlockchain, useWalletStore, useStorageStore } from '@/stores';
 import { Icon } from '@iconify/vue';
 import { ref, computed } from 'vue';
+import { loadTxWidget } from '@/lib/widgetLoader';
 
 const route = useRoute();
 const walletStore = useWalletStore();
@@ -47,7 +48,7 @@ const params = computed(() => {
 </script>
 
 <template>
-  <div class="dropdown dropdown-hover dropdown-end">
+  <div class="dropdown dropdown-hover dropdown-end" @mouseenter="loadTxWidget()">
     <label
       tabindex="0"
       class="btn btn-sm btn-primary m-1 lowercase truncate !inline-flex text-xs md:!text-sm"

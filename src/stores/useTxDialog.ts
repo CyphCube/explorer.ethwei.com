@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { useWalletStore } from './useWalletStore';
 import { useBlockchain } from './useBlockchain';
 import router from '@/router';
+import { loadTxWidget } from '@/lib/widgetLoader';
 
 let CALLBACK: any = null;
 
@@ -38,12 +39,14 @@ export const useTxDialog = defineStore('txDialogStore', {
       endpoint: string,
       param: any
     ) {
+      loadTxWidget();
       this.type = type;
       this.sender = sender;
       this.endpoint = endpoint;
       this.params = JSON.stringify(param);
     },
     open(type: string, param: any, callback?: Function) {
+      loadTxWidget();
       this.type = type;
       this.sender = this.walletAddress;
       this.endpoint = this.currentEndpoint || '';

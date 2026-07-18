@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lists only the stable, static section pages. Per-block/per-tx/per-account
+  pages are intentionally excluded: they're effectively infinite, low SEO
+  value individually, and Google will discover them via internal links if
+  it wants to -- listing them here would just dilute crawl budget.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://explorer.ethwei.com/</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/gov</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/staking</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/block</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/tx</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/uptime</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/supply</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/params</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/consensus</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/cosmwasm</loc></url>
+  <url><loc>https://explorer.ethwei.com/testnet/statesync</loc></url>
+</urlset>

@@ -3,7 +3,7 @@
   Lists only the stable, static section pages. Per-block/per-tx/per-account
   pages are intentionally excluded: they're effectively infinite, low SEO
   value individually, and Google will discover them via internal links if
-  it wants to -- listing them here would just dilute crawl budget.
+  it wants to; listing them here would just dilute crawl budget.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://explorer.ethwei.com/</loc></url>

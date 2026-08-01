@@ -6,6 +6,7 @@ import { Icon } from '@iconify/vue';
 import type { Key, SlashingParam, Validator } from '@/types';
 import { formatSeconds } from '@/libs/utils';
 import { diff } from 'semver';
+import SlashingEvents from '@/components/SlashingEvents.vue';
 
 const staking = useStakingStore();
 const base = useBaseStore();
@@ -269,6 +270,8 @@ loadAvatars();
         </span>
       </div>
     </div>
+
+    <SlashingEvents />
 
     <div>
       <div class="flex items-center justify-between py-1">
